@@ -10,6 +10,7 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        constraints: BoxConstraints.expand(),
         padding: const EdgeInsets.symmetric(horizontal: 30),
         decoration: const BoxDecoration(
           gradient: LinearGradient(

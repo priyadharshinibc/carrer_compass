@@ -176,6 +176,7 @@ class _CareerGoalsScreenState extends State<CareerGoalsScreen> {
         backgroundColor: AppColors.primaryBlue,
       ),
       body: Container(
+        constraints: BoxConstraints.expand(),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [AppColors.primaryBlue, AppColors.tealBlue],
@@ -255,7 +256,7 @@ class _CareerGoalsScreenState extends State<CareerGoalsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: const Color.fromARGB(255, 40, 219, 216).withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

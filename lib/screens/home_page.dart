@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
+import '../screens/admin/admin_screen.dart';
+import '../screens/ai_assistant_screen.dart';
+import '../screens/career_recommendation/career_recommendation_screen.dart';
+import '../screens/government_schemes/government_schemes_screen.dart';
+import '../screens/optimization/quantum_optimization_screen.dart';
 import '../themes/app_theme.dart';
 
 /// Home Page - Displayed after profile creation
@@ -31,6 +36,7 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body: Container(
+        constraints: BoxConstraints.expand(),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [AppColors.primaryBlue, AppColors.tealBlue],
@@ -55,7 +61,7 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           BottomNavigationBarItem(icon: Icon(Icons.flag), label: 'Goals'),
-          BottomNavigationBarItem(icon: Icon(Icons.school), label: 'Learning'),
+          BottomNavigationBarItem(icon: Icon(Icons.smart_toy), label: 'AI Assistant'),
         ],
       ),
     );
@@ -70,7 +76,7 @@ class _HomePageState extends State<HomePage> {
       case 2:
         return _buildGoalsScreen();
       case 3:
-        return _buildLearningScreen();
+        return _buildAIAssistantScreen();
       default:
         return _buildHomeScreen();
     }
@@ -192,40 +198,14 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.only(bottom: 16),
               child: _buildGoalCard(goal),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
   }
 
-  Widget _buildLearningScreen() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.school_outlined,
-            size: 64,
-            color: Colors.white.withOpacity(0.5),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Learning Resources',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Coming soon: Personalized learning paths\nbased on your goals',
-            style: TextStyle(color: Colors.white.withOpacity(0.6)),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
+  Widget _buildAIAssistantScreen() {
+    return AIAssistantScreen(userProfile: widget.userProfile);
   }
 
   Widget _buildWelcomeCard() {
@@ -264,13 +244,16 @@ class _HomePageState extends State<HomePage> {
     int completionPercentage = 0;
     List<String> completedSections = [];
 
-    if (widget.userProfile.fullName != null)
+    if (widget.userProfile.fullName != null) {
       completedSections.add('Basic Info');
+    }
     if (widget.userProfile.skills.isNotEmpty) completedSections.add('Skills');
-    if (widget.userProfile.educationHistory.isNotEmpty)
+    if (widget.userProfile.educationHistory.isNotEmpty) {
       completedSections.add('Education');
-    if (widget.userProfile.careerGoals.isNotEmpty)
+    }
+    if (widget.userProfile.careerGoals.isNotEmpty) {
       completedSections.add('Goals');
+    }
 
     completionPercentage = ((completedSections.length / 4) * 100).toInt();
 
@@ -345,6 +328,65 @@ class _HomePageState extends State<HomePage> {
             _buildStatCard('Goals', '${widget.userProfile.careerGoals.length}'),
           ],
         ),
+        const SizedBox(height: 24),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: widget.userProfile.careerGoals.isEmpty
+                ? null
+                : () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => QuantumOptimizationScreen(
+                          userProfile: widget.userProfile,
+                        ),
+                      ),
+                    );
+                  },
+            icon: const Icon(Icons.science),
+            label: const Text('Optimize Career Choices'),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: widget.userProfile.skills.isEmpty &&
+                    widget.userProfile.interests.isEmpty
+                ? null
+                : () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CareerRecommendationScreen(
+                          userProfile: widget.userProfile,
+                        ),
+                      ),
+                    );
+                  },
+            icon: const Icon(Icons.lightbulb),
+            label: const Text('Get Career Suggestions'),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => GovernmentSchemesScreen(
+                    userProfile: widget.userProfile,
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.account_balance),
+            label: const Text('Check Government Schemes'),
+          ),
+        ),
       ],
     );
   }
@@ -406,7 +448,7 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.only(bottom: 12),
             child: _buildGoalCard(goal),
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -681,6 +723,22 @@ class _HomePageState extends State<HomePage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Edit profile feature coming soon'),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.admin_panel_settings, color: Colors.white),
+              title: const Text(
+                'Administration',
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AdminScreen(),
                   ),
                 );
               },

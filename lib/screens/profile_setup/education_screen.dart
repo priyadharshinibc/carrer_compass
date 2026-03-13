@@ -100,6 +100,7 @@ class _EducationScreenState extends State<EducationScreen> {
         backgroundColor: AppColors.primaryBlue,
       ),
       body: Container(
+        constraints: BoxConstraints.expand(),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [AppColors.primaryBlue, AppColors.tealBlue],

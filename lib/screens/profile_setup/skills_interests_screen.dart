@@ -127,6 +127,7 @@ class _SkillsInterestsScreenState extends State<SkillsInterestsScreen> {
         backgroundColor: AppColors.primaryBlue,
       ),
       body: Container(
+        constraints: BoxConstraints.expand(),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [AppColors.primaryBlue, AppColors.tealBlue],
@@ -292,7 +293,7 @@ class _SkillsInterestsScreenState extends State<SkillsInterestsScreen> {
           backgroundColor: Colors.white.withOpacity(0.1),
           selectedColor: AppColors.goldAccent,
           labelStyle: TextStyle(
-            color: isSelected ? Colors.black : Colors.white,
+            color: isSelected ? const Color.fromARGB(255, 12, 165, 231) : const Color.fromARGB(255, 90, 214, 208),
             fontWeight: FontWeight.w500,
           ),
           side: BorderSide(
