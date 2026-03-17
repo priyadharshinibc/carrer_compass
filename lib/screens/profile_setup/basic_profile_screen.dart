@@ -74,7 +74,8 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
 
   void _proceedToNextStep() {
     if (_validateInputs()) {
-      final profile = UserProfile(
+      // Preserve existing fields (skills, education, goals, etc.) while editing basics.
+      final profile = (widget.existingProfile ?? UserProfile()).copyWith(
         fullName: _fullNameController.text,
         email: _emailController.text,
         phoneNumber: _phoneController.text,
@@ -137,7 +138,9 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Your Profile'),
+        title: Text(widget.existingProfile == null
+            ? 'Create Your Profile'
+            : 'Edit Your Profile'),
         elevation: 0,
         backgroundColor: AppColors.primaryBlue,
       ),
@@ -151,7 +154,12 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
           ),
         ),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.fromLTRB(
+            24,
+            24,
+            24,
+            24 + MediaQuery.of(context).viewInsets.bottom,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

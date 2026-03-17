@@ -7,7 +7,7 @@ import '../models/user_profile.dart';
 class CareerRecommendationService {
   /// A small sample list of career options. In a real app, this might come
   /// from an API or a database.
-  static List<CareerOption> _careerOptions = [
+  static final List<CareerOption> _careerOptions = [
     CareerOption(
       title: 'Software Engineer',
       description:
@@ -64,6 +64,90 @@ class CareerRecommendationService {
       ],
       educationRequired:
           'Bachelor’s Degree in Computer Science or Cybersecurity',
+    ),
+    // Government / Public Service
+    CareerOption(
+      title: 'Civil Services Officer (UPSC)',
+      description:
+          'Serve in central government administration after clearing the UPSC Civil Services Examination.',
+      industries: ['Government', 'Public Service'],
+      skills: ['General Knowledge', 'Analytical Thinking', 'Communication'],
+      educationRequired: 'Bachelorâ€™s Degree in any discipline',
+    ),
+    CareerOption(
+      title: 'State Public Service Officer',
+      description:
+          'Work in state government departments through State Public Service Commission exams.',
+      industries: ['Government', 'Public Service'],
+      skills: ['General Knowledge', 'Problem Solving', 'Administration'],
+      educationRequired: 'Bachelorâ€™s Degree in any discipline',
+    ),
+    CareerOption(
+      title: 'Bank Probationary Officer (PO)',
+      description:
+          'Manage retail banking operations, lending, and customer service in public sector banks.',
+      industries: ['Banking', 'Finance', 'Government'],
+      skills: ['Quantitative Aptitude', 'Customer Service', 'Communication'],
+      educationRequired: 'Bachelorâ€™s Degree in any discipline',
+    ),
+    CareerOption(
+      title: 'Railway Junior Engineer',
+      description:
+          'Maintain and supervise technical systems in Indian Railways across civil, electrical, or mechanical streams.',
+      industries: ['Government', 'Transport', 'Engineering'],
+      skills: ['Engineering Basics', 'Problem Solving', 'Safety Awareness'],
+      educationRequired: 'Diploma or Bachelorâ€™s in Engineering',
+    ),
+    CareerOption(
+      title: 'Police Sub-Inspector',
+      description:
+          'Lead policing units, conduct investigations, and maintain law and order at the state level.',
+      industries: ['Government', 'Public Safety'],
+      skills: ['Physical Fitness', 'Decision Making', 'Communication'],
+      educationRequired: 'Bachelorâ€™s Degree; state recruitment exam',
+    ),
+    // Healthcare & Education
+    CareerOption(
+      title: 'Registered Nurse',
+      description:
+          'Provide patient care in hospitals and clinics, coordinating with doctors and ensuring treatment adherence.',
+      industries: ['Healthcare'],
+      skills: ['Clinical Skills', 'Compassion', 'Attention to Detail'],
+      educationRequired: 'B.Sc Nursing / GNM with registration',
+    ),
+    CareerOption(
+      title: 'School Teacher',
+      description:
+          'Teach and mentor students in primary or secondary schools; specialize by subject.',
+      industries: ['Education'],
+      skills: ['Subject Expertise', 'Classroom Management', 'Communication'],
+      educationRequired: 'B.Ed with relevant subject degree',
+    ),
+    // Agriculture & Rural Development
+    CareerOption(
+      title: 'Agricultural Extension Officer',
+      description:
+          'Guide farmers on best practices, government schemes, and modern techniques.',
+      industries: ['Agriculture', 'Government'],
+      skills: ['Agronomy Basics', 'Field Work', 'Communication'],
+      educationRequired: 'Bachelorâ€™s in Agriculture or related field',
+    ),
+    // Skilled Trades & Manufacturing
+    CareerOption(
+      title: 'Electrician',
+      description:
+          'Install and maintain electrical systems in homes, industries, and infrastructure projects.',
+      industries: ['Construction', 'Manufacturing'],
+      skills: ['Electrical Wiring', 'Safety', 'Troubleshooting'],
+      educationRequired: 'ITI/Polytechnic certification with license',
+    ),
+    CareerOption(
+      title: 'Manufacturing Technician',
+      description:
+          'Operate and maintain machinery on production lines while ensuring quality and safety standards.',
+      industries: ['Manufacturing', 'Automotive'],
+      skills: ['Machine Operation', 'Quality Control', 'Teamwork'],
+      educationRequired: 'Diploma/ITI in relevant trade',
     ),
   ];
 

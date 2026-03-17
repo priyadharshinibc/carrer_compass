@@ -17,9 +17,11 @@ class SkillsInterestsScreen extends StatefulWidget {
 class _SkillsInterestsScreenState extends State<SkillsInterestsScreen> {
   List<String> selectedSkills = [];
   List<String> selectedInterests = [];
+  List<String> selectedHobbies = [];
 
   late TextEditingController _customSkillController;
   late TextEditingController _customInterestController;
+  late TextEditingController _customHobbyController;
 
   // Predefined options
   final List<String> predefinedSkills = [
@@ -58,19 +60,36 @@ class _SkillsInterestsScreenState extends State<SkillsInterestsScreen> {
     'Gaming',
   ];
 
+  final List<String> predefinedHobbies = [
+    'Reading',
+    'Gardening',
+    'Cooking',
+    'Photography',
+    'Music',
+    'Dancing',
+    'Painting',
+    'Running',
+    'Cycling',
+    'Blogging',
+    'Volunteering',
+  ];
+
   @override
   void initState() {
     super.initState();
     _customSkillController = TextEditingController();
     _customInterestController = TextEditingController();
+    _customHobbyController = TextEditingController();
     selectedSkills = List.from(widget.userProfile.skills);
     selectedInterests = List.from(widget.userProfile.interests);
+    selectedHobbies = List.from(widget.userProfile.hobbies);
   }
 
   @override
   void dispose() {
     _customSkillController.dispose();
     _customInterestController.dispose();
+    _customHobbyController.dispose();
     super.dispose();
   }
 
@@ -94,6 +113,16 @@ class _SkillsInterestsScreenState extends State<SkillsInterestsScreen> {
     }
   }
 
+  void _addCustomHobby() {
+    final hobby = _customHobbyController.text.trim();
+    if (hobby.isNotEmpty && !selectedHobbies.contains(hobby)) {
+      setState(() {
+        selectedHobbies.add(hobby);
+        _customHobbyController.clear();
+      });
+    }
+  }
+
   void _proceedToNextStep() {
     if (selectedSkills.isEmpty || selectedInterests.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -108,6 +137,7 @@ class _SkillsInterestsScreenState extends State<SkillsInterestsScreen> {
     final updatedProfile = widget.userProfile.copyWith(
       skills: selectedSkills,
       interests: selectedInterests,
+      hobbies: selectedHobbies,
     );
 
     Navigator.push(
@@ -136,7 +166,12 @@ class _SkillsInterestsScreenState extends State<SkillsInterestsScreen> {
           ),
         ),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.fromLTRB(
+            24,
+            24,
+            24,
+            24 + MediaQuery.of(context).viewInsets.bottom,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -164,7 +199,10 @@ class _SkillsInterestsScreenState extends State<SkillsInterestsScreen> {
               ),
               const SizedBox(height: 12),
               if (selectedSkills.isNotEmpty)
-                _buildSelectedChips(selectedSkills),
+                _buildSelectedChips(
+                  selectedSkills,
+                  (item) => setState(() => selectedSkills.remove(item)),
+                ),
               const SizedBox(height: 30),
               _buildSectionTitle('Your Interests'),
               const SizedBox(height: 12),
@@ -190,7 +228,37 @@ class _SkillsInterestsScreenState extends State<SkillsInterestsScreen> {
               ),
               const SizedBox(height: 12),
               if (selectedInterests.isNotEmpty)
-                _buildSelectedChips(selectedInterests),
+                _buildSelectedChips(
+                  selectedInterests,
+                  (item) => setState(() => selectedInterests.remove(item)),
+                ),
+              const SizedBox(height: 30),
+              _buildSectionTitle('Your Hobbies (optional)'),
+              const SizedBox(height: 12),
+              _buildDescription('Add hobbies to personalize recommendations'),
+              const SizedBox(height: 16),
+              _buildChipGroup(predefinedHobbies, selectedHobbies, (hobby) {
+                setState(() {
+                  if (selectedHobbies.contains(hobby)) {
+                    selectedHobbies.remove(hobby);
+                  } else {
+                    selectedHobbies.add(hobby);
+                  }
+                });
+              }),
+              const SizedBox(height: 16),
+              _buildAddCustomField(
+                controller: _customHobbyController,
+                hintText: 'Add custom hobby',
+                onAdd: _addCustomHobby,
+                icon: Icons.favorite,
+              ),
+              const SizedBox(height: 12),
+              if (selectedHobbies.isNotEmpty)
+                _buildSelectedChips(
+                  selectedHobbies,
+                  (item) => setState(() => selectedHobbies.remove(item)),
+                ),
               const SizedBox(height: 40),
               _buildNavigationButtons(),
             ],
@@ -304,7 +372,7 @@ class _SkillsInterestsScreenState extends State<SkillsInterestsScreen> {
     );
   }
 
-  Widget _buildSelectedChips(List<String> items) {
+  Widget _buildSelectedChips(List<String> items, Function(String) onDelete) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -319,10 +387,7 @@ class _SkillsInterestsScreenState extends State<SkillsInterestsScreen> {
           return Chip(
             label: Text(item),
             onDeleted: () {
-              setState(() {
-                selectedSkills.remove(item);
-                selectedInterests.remove(item);
-              });
+              onDelete(item);
             },
             backgroundColor: AppColors.goldAccent.withOpacity(0.2),
             labelStyle: const TextStyle(

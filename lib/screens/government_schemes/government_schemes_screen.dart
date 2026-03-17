@@ -139,78 +139,89 @@ class SchemeDetailScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-              Text(
-                scheme.name,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${scheme.category} - ${scheme.government}',
-                style: TextStyle(color: AppColors.goldAccent, fontSize: 16),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Description',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                scheme.description,
-                style: TextStyle(color: Colors.white.withOpacity(0.7)),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Benefits',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                scheme.benefits,
-                style: TextStyle(color: Colors.white.withOpacity(0.7)),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Eligibility Criteria',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
-              ...scheme.eligibility.entries.map((entry) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    '${entry.key}: ${entry.value}',
-                    style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                Text(
+                  scheme.name,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
-                );
-              }),
-              const SizedBox(height: 20),
-              Offstage(
-                offstage: scheme.applyUrl == null,
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      final url = Uri.parse(scheme.applyUrl!);
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url);
-                      } else {
-                        if (context.mounted) {
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${scheme.category} - ${scheme.government}',
+                  style: TextStyle(color: AppColors.goldAccent, fontSize: 16),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Description',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  scheme.description,
+                  style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Benefits',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  scheme.benefits,
+                  style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Eligibility Criteria',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...scheme.eligibility.entries.map((entry) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      '${entry.key}: ${entry.value}',
+                      style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                    ),
+                  );
+                }),
+                const SizedBox(height: 20),
+                Offstage(
+                  offstage: scheme.applyUrl == null,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final url = Uri.parse(scheme.applyUrl!);
+                        // Try external browser first; fall back to in-app tab if no handler.
+                        bool launched = false;
+                        if (await canLaunchUrl(url)) {
+                          launched = await launchUrl(
+                            url,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
+                        if (!launched) {
+                          launched = await launchUrl(
+                            url,
+                            mode: LaunchMode.inAppBrowserView,
+                          );
+                        }
+                        if (!launched && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
@@ -219,14 +230,14 @@ class SchemeDetailScreen extends StatelessWidget {
                             ),
                           );
                         }
-                      }
-                    },
-                    icon: const Icon(Icons.open_in_browser),
-                    label: const Text('Apply Now'),
+                      },
+                      icon: const Icon(Icons.open_in_browser),
+                      label: const Text('Apply Now'),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -5,6 +5,8 @@ import '../screens/ai_assistant_screen.dart';
 import '../screens/career_recommendation/career_recommendation_screen.dart';
 import '../screens/government_schemes/government_schemes_screen.dart';
 import '../screens/optimization/quantum_optimization_screen.dart';
+import '../screens/profile_setup/basic_profile_screen.dart';
+import 'learn/learn_detail_screen.dart';
 import '../themes/app_theme.dart';
 
 /// Home Page - Displayed after profile creation
@@ -61,7 +63,14 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           BottomNavigationBarItem(icon: Icon(Icons.flag), label: 'Goals'),
-          BottomNavigationBarItem(icon: Icon(Icons.smart_toy), label: 'AI Assistant'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.laptop_chromebook),
+            label: 'Learn',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.smart_toy),
+            label: 'AI Assistant',
+          ),
         ],
       ),
     );
@@ -76,10 +85,160 @@ class _HomePageState extends State<HomePage> {
       case 2:
         return _buildGoalsScreen();
       case 3:
+        return _buildLearnScreen();
+      case 4:
         return _buildAIAssistantScreen();
       default:
         return _buildHomeScreen();
     }
+  }
+
+  Widget _buildLearnScreen() {
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Learn',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Explore curated paths and courses across domains.',
+              style: TextStyle(color: Colors.white.withOpacity(0.7)),
+            ),
+            const SizedBox(height: 20),
+            _buildLearnCard('CS/IT'),
+            const SizedBox(height: 12),
+            _buildLearnCard('Trending Courses'),
+            const SizedBox(height: 12),
+            _buildLearnCard('Architecture'),
+            const SizedBox(height: 12),
+            _buildLearnCard('Management'),
+            const SizedBox(height: 12),
+            _buildLearnCard('Maths and Science'),
+            const SizedBox(height: 12),
+            _buildLearnCard('Law'),
+            const SizedBox(height: 12),
+            _buildLearnCard('Government Exam Preparation'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLearnCard(String title) {
+    return GestureDetector(
+      onTap: () {
+        if (title == 'CS/IT') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const LearnDetailScreen(topic: 'CS/IT'),
+            ),
+          );
+        } else if (title == 'Trending Courses') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const LearnDetailScreen(topic: 'Trending Courses'),
+            ),
+          );
+        } else if (title == 'Architecture') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const LearnDetailScreen(topic: 'Architecture'),
+            ),
+          );
+        } else if (title == 'Management') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const LearnDetailScreen(topic: 'Management'),
+            ),
+          );
+        } else if (title == 'Maths and Science') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const LearnDetailScreen(topic: 'Maths and Science'),
+            ),
+          );
+        } else if (title == 'Law') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const LearnDetailScreen(topic: 'Law'),
+            ),
+          );
+        } else if (title == 'Government Exam Preparation') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const LearnDetailScreen(
+                topic: 'Government Exam Preparation',
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Coming soon: $title resources'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white24),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(
+              Icons.laptop_chromebook,
+              color: AppColors.goldAccent,
+              size: 28,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Tap to view roadmap & courses',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.6),
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildHomeScreen() {
@@ -129,6 +288,8 @@ class _HomePageState extends State<HomePage> {
               _buildTagsList('Skills', widget.userProfile.skills),
             if (widget.userProfile.interests.isNotEmpty)
               _buildTagsList('Interests', widget.userProfile.interests),
+            if (widget.userProfile.hobbies.isNotEmpty)
+              _buildTagsList('Hobbies', widget.userProfile.hobbies),
           ]),
           const SizedBox(height: 16),
           _buildProfileSection('Career Information', [
@@ -308,7 +469,7 @@ class _HomePageState extends State<HomePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Quick Stats',
+          'Quick Start',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -352,7 +513,8 @@ class _HomePageState extends State<HomePage> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: widget.userProfile.skills.isEmpty &&
+            onPressed:
+                widget.userProfile.skills.isEmpty &&
                     widget.userProfile.interests.isEmpty
                 ? null
                 : () {
@@ -377,9 +539,8 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => GovernmentSchemesScreen(
-                    userProfile: widget.userProfile,
-                  ),
+                  builder: (_) =>
+                      GovernmentSchemesScreen(userProfile: widget.userProfile),
                 ),
               );
             },
@@ -600,7 +761,7 @@ class _HomePageState extends State<HomePage> {
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.05),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white24),
+            border: Border.all(color: const Color.fromARGB(60, 252, 250, 250)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -682,8 +843,13 @@ class _HomePageState extends State<HomePage> {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Edit profile feature coming soon')),
+          // Re-open profile setup flow with existing data; replace current home
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  BasicProfileScreen(existingProfile: widget.userProfile),
+            ),
           );
         },
         child: const Text('Edit Profile'),
@@ -720,15 +886,20 @@ class _HomePageState extends State<HomePage> {
               ),
               onTap: () {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Edit profile feature coming soon'),
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        BasicProfileScreen(existingProfile: widget.userProfile),
                   ),
                 );
               },
             ),
             ListTile(
-              leading: const Icon(Icons.admin_panel_settings, color: Colors.white),
+              leading: const Icon(
+                Icons.admin_panel_settings,
+                color: Colors.white,
+              ),
               title: const Text(
                 'Administration',
                 style: TextStyle(color: Colors.white),
@@ -737,9 +908,7 @@ class _HomePageState extends State<HomePage> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const AdminScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const AdminScreen()),
                 );
               },
             ),

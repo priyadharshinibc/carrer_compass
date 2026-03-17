@@ -13,6 +13,7 @@ class UserProfile {
   // Skills and Interests
   final List<String> skills;
   final List<String> interests;
+  final List<String> hobbies;
 
   // Educational Background
   final List<Education> educationHistory;
@@ -40,6 +41,7 @@ class UserProfile {
     this.location,
     this.skills = const [],
     this.interests = const [],
+    this.hobbies = const [],
     this.educationHistory = const [],
     this.careerGoals = const [],
     this.preferredJobTitle,
@@ -63,6 +65,7 @@ class UserProfile {
     String? location,
     List<String>? skills,
     List<String>? interests,
+    List<String>? hobbies,
     List<Education>? educationHistory,
     List<CareerGoal>? careerGoals,
     String? preferredJobTitle,
@@ -84,6 +87,7 @@ class UserProfile {
       location: location ?? this.location,
       skills: skills ?? this.skills,
       interests: interests ?? this.interests,
+      hobbies: hobbies ?? this.hobbies,
       educationHistory: educationHistory ?? this.educationHistory,
       careerGoals: careerGoals ?? this.careerGoals,
       preferredJobTitle: preferredJobTitle ?? this.preferredJobTitle,
@@ -108,6 +112,7 @@ class UserProfile {
     'location': location,
     'skills': skills,
     'interests': interests,
+    'hobbies': hobbies,
     'educationHistory': educationHistory.map((e) => e.toJson()).toList(),
     'careerGoals': careerGoals.map((g) => g.toJson()).toList(),
     'preferredJobTitle': preferredJobTitle,
@@ -133,6 +138,7 @@ class UserProfile {
     location: json['location'],
     skills: List<String>.from(json['skills'] ?? []),
     interests: List<String>.from(json['interests'] ?? []),
+    hobbies: List<String>.from(json['hobbies'] ?? []),
     educationHistory:
         (json['educationHistory'] as List<dynamic>?)
             ?.map((e) => Education.fromJson(e))

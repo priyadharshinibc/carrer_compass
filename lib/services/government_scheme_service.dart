@@ -6,7 +6,7 @@ import '../models/user_profile.dart';
 /// criteria. Includes schemes from India and Tamil Nadu.
 class GovernmentSchemeService {
   /// A curated list of government schemes with eligibility criteria.
-  static List<GovernmentScheme> _schemes = [
+  static final List<GovernmentScheme> _schemes = [
     // Indian Government Schemes
     GovernmentScheme(
       name: 'PM Kisan Samman Nidhi',
@@ -60,6 +60,204 @@ class GovernmentSchemeService {
       category: 'Education',
       government: 'India',
       applyUrl: 'https://wcd.nic.in/bbbp',
+    ),
+    GovernmentScheme(
+      name: 'Pradhan Mantri Mudra Yojana',
+      description:
+          'Collateral-free loans for micro and small enterprises under Shishu, Kishor, and Tarun categories.',
+      benefits: 'Loans up to Rs 10 lakh via partner banks and NBFCs.',
+      eligibility: {
+        'occupation': 'micro/small business owner',
+        'location': 'India',
+      },
+      category: 'Entrepreneurship',
+      government: 'India',
+      applyUrl: 'https://www.mudra.org.in/',
+    ),
+    GovernmentScheme(
+      name: 'Stand-Up India Scheme',
+      description:
+          'Bank loans to support entrepreneurship among women and SC/ST applicants.',
+      benefits: 'Loans from Rs 10 lakh to Rs 1 crore for greenfield enterprises.',
+      eligibility: {
+        'category': 'SC/ST/woman',
+        'location': 'India',
+      },
+      category: 'Entrepreneurship',
+      government: 'India',
+      applyUrl: 'https://www.standupmitra.in/',
+    ),
+    GovernmentScheme(
+      name: 'Atal Pension Yojana',
+      description:
+          'Pension scheme for unorganized sector workers with government co-contribution.',
+      benefits: 'Pension of Rs 1,000 to 5,000 per month after age 60 based on contribution.',
+      eligibility: {'age': '18-40', 'location': 'India'},
+      category: 'Social Security',
+      government: 'India',
+      applyUrl: 'https://www.npscra.nsdl.co.in/scheme-details.php',
+    ),
+    GovernmentScheme(
+      name: 'National Scholarship Portal',
+      description:
+          'Single window for central and state scholarships for students.',
+      benefits: 'Scholarship disbursal for eligible students across levels.',
+      eligibility: {
+        'education': 'students',
+        'location': 'India',
+      },
+      category: 'Education',
+      government: 'India',
+      applyUrl: 'https://scholarships.gov.in/',
+    ),
+    GovernmentScheme(
+      name: 'Pradhan Mantri Jan Dhan Yojana',
+      description:
+          'Zero-balance bank accounts with overdraft, insurance, and RuPay card for financial inclusion.',
+      benefits: 'No minimum balance; overdraft up to Rs 10,000; accidental insurance cover.',
+      eligibility: {'location': 'India'},
+      category: 'Finance',
+      government: 'India',
+      applyUrl: 'https://pmjdy.gov.in/',
+    ),
+    GovernmentScheme(
+      name: 'Pradhan Mantri Ujjwala Yojana',
+      description:
+          'Free LPG connections for women from below-poverty-line households to promote clean cooking.',
+      benefits: 'Deposit-free LPG connection with first refill and stove assistance.',
+      eligibility: {'category': 'BPL', 'gender': 'female', 'location': 'India'},
+      category: 'Health',
+      government: 'India',
+      applyUrl: 'https://www.pmuy.gov.in/',
+    ),
+    GovernmentScheme(
+      name: 'Sukanya Samriddhi Yojana',
+      description:
+          'Small savings scheme for girl child offering high interest and tax benefits.',
+      benefits: 'Competitive interest rate; tax deduction under Section 80C.',
+      eligibility: {'gender': 'female', 'age': '0-10', 'location': 'India'},
+      category: 'Savings',
+      government: 'India',
+      applyUrl: 'https://www.nsiindia.gov.in/InternalPage.aspx?Id_Pk=89',
+    ),
+    GovernmentScheme(
+      name: 'Kisan Credit Card',
+      description:
+          'Credit facility for farmers to meet cultivation and contingency needs.',
+      benefits: 'Flexible credit limits with interest subsidy for timely repayment.',
+      eligibility: {'occupation': 'farmer', 'location': 'India'},
+      category: 'Agriculture',
+      government: 'India',
+      applyUrl: 'https://www.pmkisan.gov.in/Documents/KCC.pdf',
+    ),
+    GovernmentScheme(
+      name: 'Jal Jeevan Mission',
+      description:
+          'Household tap water supply to rural homes with functional tap connections.',
+      benefits: 'Support for piped water infrastructure in rural areas.',
+      eligibility: {'location': 'India', 'category': 'rural household'},
+      category: 'Water',
+      government: 'India',
+      applyUrl: 'https://jaljeevanmission.gov.in/',
+    ),
+    GovernmentScheme(
+      name: 'Pradhan Mantri Fasal Bima Yojana',
+      description: 'Crop insurance for farmers against natural calamities.',
+      benefits: 'Subsidized premiums and claim support for notified crops.',
+      eligibility: {'occupation': 'farmer', 'location': 'India'},
+      category: 'Agriculture',
+      government: 'India',
+      applyUrl: 'https://pmfby.gov.in/',
+    ),
+    GovernmentScheme(
+      name: 'Deen Dayal Upadhyaya Grameen Kaushalya Yojana',
+      description: 'Skill development and placement support for rural youth.',
+      benefits: 'Free residential training with placement assistance.',
+      eligibility: {'age': '15-35', 'location': 'India', 'category': 'rural'},
+      category: 'Skill Development',
+      government: 'India',
+      applyUrl: 'https://ddugky.gov.in/',
+    ),
+    GovernmentScheme(
+      name: 'Pradhan Mantri Kaushal Vikas Yojana',
+      description: 'Short-term skilling with assessment and certification.',
+      benefits: 'Free training and monetary reward on certification.',
+      eligibility: {'age': '18-35', 'location': 'India'},
+      category: 'Skill Development',
+      government: 'India',
+      applyUrl: 'https://www.pmkvyofficial.org/',
+    ),
+    GovernmentScheme(
+      name: 'National Apprenticeship Promotion Scheme',
+      description: 'On-the-job apprenticeship training with stipend support.',
+      benefits: 'Stipend reimbursement and training support.',
+      eligibility: {'age': '14+', 'location': 'India'},
+      category: 'Skill Development',
+      government: 'India',
+      applyUrl: 'https://apprenticeshipindia.gov.in/',
+    ),
+    GovernmentScheme(
+      name: 'Prime Minister Employment Generation Programme',
+      description: 'Credit-linked subsidy for micro and small enterprises.',
+      benefits: 'Subsidy up to 35% on project cost for eligible entrepreneurs.',
+      eligibility: {'location': 'India', 'category': 'micro/small business'},
+      category: 'Entrepreneurship',
+      government: 'India',
+      applyUrl: 'https://www.kviconline.gov.in/pmegp/',
+    ),
+    GovernmentScheme(
+      name: 'Startup India Seed Fund Scheme',
+      description: 'Seed funding support for early-stage startups.',
+      benefits: 'Grants and convertible debt for MVP and market entry.',
+      eligibility: {'location': 'India', 'category': 'startup'},
+      category: 'Entrepreneurship',
+      government: 'India',
+      applyUrl: 'https://seedfund.startupindia.gov.in/',
+    ),
+    GovernmentScheme(
+      name: 'Khelo India',
+      description: 'National program for sports development and scholarships.',
+      benefits: 'Training, infrastructure, and scholarships for athletes.',
+      eligibility: {'age': '10-21', 'location': 'India', 'category': 'athlete'},
+      category: 'Sports',
+      government: 'India',
+      applyUrl: 'https://kheloindia.gov.in/',
+    ),
+    GovernmentScheme(
+      name: 'National Means-cum-Merit Scholarship',
+      description: 'Scholarship to reduce dropouts at class VIII and encourage higher studies.',
+      benefits: 'Annual scholarship for eligible students via NSP.',
+      eligibility: {'education': 'class 8', 'location': 'India'},
+      category: 'Education',
+      government: 'India',
+      applyUrl: 'https://scholarships.gov.in/',
+    ),
+    GovernmentScheme(
+      name: 'AMRUT',
+      description: 'Urban infrastructure for water supply, sewerage, and green spaces.',
+      benefits: 'Central assistance to cities for infrastructure projects.',
+      eligibility: {'location': 'Urban India'},
+      category: 'Urban Development',
+      government: 'India',
+      applyUrl: 'https://amrut.gov.in/',
+    ),
+    GovernmentScheme(
+      name: 'National Rural Livelihood Mission',
+      description: 'Livelihood support through SHGs and skill training.',
+      benefits: 'Financial inclusion, credit linkage, and skilling for rural poor.',
+      eligibility: {'location': 'rural', 'category': 'low-income'},
+      category: 'Livelihood',
+      government: 'India',
+      applyUrl: 'https://aajeevika.gov.in/',
+    ),
+    GovernmentScheme(
+      name: 'Atal Innovation Mission',
+      description: 'Promotes innovation via Atal Tinkering Labs and incubators.',
+      benefits: 'Grants for labs, incubation, and startup support.',
+      eligibility: {'location': 'India', 'category': 'schools/startups'},
+      category: 'Innovation',
+      government: 'India',
+      applyUrl: 'https://aim.gov.in/',
     ),
 
     // Tamil Nadu Government Schemes
@@ -126,6 +324,28 @@ class GovernmentSchemeService {
       government: 'Tamil Nadu',
       applyUrl:
           'https://tnsocialwelfare.tn.gov.in/agricultural-labourers-pension-scheme/',
+    ),
+    GovernmentScheme(
+      name: 'Tamil Nadu Amma Two Wheeler Scheme',
+      description: 'Subsidy for working women to purchase two-wheelers.',
+      benefits: '50% subsidy up to ₹25,000 on a new two-wheeler.',
+      eligibility: {
+        'gender': 'female',
+        'location': 'Tamil Nadu',
+        'category': 'working women',
+      },
+      category: 'Women Empowerment',
+      government: 'Tamil Nadu',
+      applyUrl: 'https://www.tamilnadumahalir.org/',
+    ),
+    GovernmentScheme(
+      name: 'Tamil Nadu Free Laptop Scheme',
+      description: 'Free laptops for students to promote digital learning.',
+      benefits: 'Laptop provided by state government.',
+      eligibility: {'education': 'students', 'location': 'Tamil Nadu'},
+      category: 'Education',
+      government: 'Tamil Nadu',
+      applyUrl: 'https://it.tn.gov.in/en/ELCOT',
     ),
   ];
 
