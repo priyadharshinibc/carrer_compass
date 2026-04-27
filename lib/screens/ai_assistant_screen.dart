@@ -20,6 +20,14 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
   final TextEditingController _messageController = TextEditingController();
   final List<ChatMessage> _messages = [];
   final ScrollController _scrollController = ScrollController();
+  bool _isResponding = false;
+
+  static const List<String> _quickPrompts = [
+    'Recommend the best career for me',
+    'Show my skill gaps',
+    'Give me a 30 day roadmap',
+    'Find schemes I can apply for',
+  ];
 
   @override
   void initState() {
@@ -31,7 +39,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     _messages.add(
       ChatMessage(
         text:
-            'Hey ${widget.userProfile.fullName ?? 'friend'}! 😊 I\'m here to cheer you on and help with careers, roadmaps, and schemes. What\'s on your mind?',
+            'Hey ${widget.userProfile.fullName ?? 'friend'}! I can help you pick a career, spot skill gaps, build a roadmap, and find schemes. Ask me something specific like “best career for my profile” or “roadmap for bank PO”.',
         isUser: false,
       ),
     );
@@ -68,6 +76,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
                   },
                 ),
               ),
+              _buildQuickPrompts(),
               _buildInputArea(),
             ],
           ),
@@ -102,7 +111,12 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
   Widget _buildInputArea() {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.white.withOpacity(0.05),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlue.withOpacity(0.92),
+        border: Border(
+          top: BorderSide(color: AppColors.goldAccent.withOpacity(0.35)),
+        ),
+      ),
       child: Row(
         children: [
           Expanded(
@@ -110,13 +124,13 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
               controller: _messageController,
               decoration: InputDecoration(
                 hintText: 'Ask me anything about your career...',
-                hintStyle: TextStyle(color: Colors.white70),
+                hintStyle: TextStyle(color: Colors.white.withOpacity(0.78)),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: Colors.white.withOpacity(0.1),
+                fillColor: Colors.white.withOpacity(0.14),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,
@@ -128,7 +142,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
           ),
           const SizedBox(width: 8),
           FloatingActionButton(
-            onPressed: _sendMessage,
+            onPressed: _isResponding ? null : _sendMessage,
             backgroundColor: AppColors.goldAccent,
             child: const Icon(Icons.send, color: Colors.black),
           ),
@@ -137,22 +151,72 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     );
   }
 
-  void _sendMessage() {
+  Widget _buildQuickPrompts() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.tealBlue.withOpacity(0.22),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.goldAccent.withOpacity(0.25)),
+      ),
+      child: SizedBox(
+        height: 48,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: _quickPrompts.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (context, index) {
+            final prompt = _quickPrompts[index];
+            return ActionChip(
+              label: Text(prompt),
+              backgroundColor: AppColors.goldAccent,
+              labelStyle: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.w700,
+              ),
+              shape: StadiumBorder(
+                side: BorderSide(color: AppColors.goldAccent.withOpacity(0.65)),
+              ),
+              onPressed: _isResponding
+                  ? null
+                  : () {
+                      _messageController.text = prompt;
+                      _sendMessage();
+                    },
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
     setState(() {
       _messages.add(ChatMessage(text: text, isUser: true));
       _messageController.clear();
+      _messages.add(
+        ChatMessage(text: 'Thinking...', isUser: false, isTyping: true),
+      );
+      _isResponding = true;
     });
 
-    // Simulate typing delay
-    Future.delayed(const Duration(milliseconds: 600), () async {
-      final response = await _generateResponse(text);
-      setState(() {
-        _messages.add(ChatMessage(text: response, isUser: false));
-      });
-      _scrollToBottom();
+    _scrollToBottom();
+
+    final response = await _generateResponse(text);
+
+    if (!mounted) return;
+
+    setState(() {
+      if (_messages.isNotEmpty && _messages.last.isTyping) {
+        _messages.removeLast();
+      }
+      _messages.add(ChatMessage(text: response, isUser: false));
+      _isResponding = false;
     });
 
     _scrollToBottom();
@@ -164,31 +228,10 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
 
     switch (intent) {
       case Intent.careerRoadmap:
-        final target = _extractRole(userMessage);
-        final recommendations =
-            await CareerRecommendationService.recommendCareers(
-              widget.userProfile,
-            );
-        if (target != null) {
-          final match = recommendations
-              .map((r) => r.careerOption)
-              .firstWhere(
-                (c) => c.title.toLowerCase().contains(target),
-                orElse: () => recommendations.first.careerOption,
-              );
-          return _warmify(_buildCareerRoadmap(match));
-        }
-        if (recommendations.isNotEmpty) {
-          return _warmify(
-            _buildCareerRoadmap(recommendations.first.careerOption),
-          );
-        }
-        return _warmify(
-          'I couldn\'t find a good match yet. Add some skills/interests to your profile and try again— we\'ll nail this together!',
-        );
+        return _warmify(await _buildCareerResponse(userMessage));
 
       case Intent.skillsGap:
-        return _warmify(_buildSkillGapResponse());
+        return _warmify(await _buildSkillGapResponse(userMessage));
 
       case Intent.govScheme:
         return _warmify(_buildSchemeResponse());
@@ -201,7 +244,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
 
       case Intent.greeting:
         return _warmify(
-          'Hi! I\'m your career buddy—ask me for any roadmap and I\'ll keep it short, clear, and doable.',
+          'Hi! I\'m your career buddy. Tell me a target role or goal and I\'ll give you a focused plan, skill gaps, and the next best action.',
         );
 
       case Intent.thanks:
@@ -209,40 +252,105 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
 
       case Intent.help:
         return _warmify(
-          'I can be your ChatGPT-style friend for careers: roadmaps, skill gaps, government schemes, and next actions. Try: "Roadmap for Bank PO" or "Schemes for women entrepreneurs".',
+          'I can help with career recommendations, skill gaps, roadmaps, government schemes, and goal planning. Try: "best career for me", "roadmap for data analyst", or "schemes for entrepreneurs".',
         );
 
       default:
-        return _warmify(
-          'Tell me a role or goal (e.g., "become a data analyst" or "clear state PSC"). I\'ll share a supportive, realistic plan.',
-        );
+        return _warmify(await _buildDefaultResponse(userMessage));
     }
   }
 
-  String _buildCareerRoadmap(CareerOption career) {
+  Future<String> _buildCareerResponse(String userMessage) async {
+    final target = _extractRole(userMessage);
+    final recommendations =
+        await CareerRecommendationService.analyzeCareerRecommendations(
+          widget.userProfile,
+        );
+
+    if (recommendations.isEmpty) {
+      return 'I could not build a strong match yet. Add a few skills, interests, and a preferred job title, then ask me again.';
+    }
+
+    CareerRecommendationInsight? selected;
+
+    if (target != null) {
+      final loweredTarget = target.toLowerCase();
+      for (final item in recommendations) {
+        final title = item.recommendation.careerOption.title.toLowerCase();
+        if (title.contains(loweredTarget) || loweredTarget.contains(title)) {
+          selected = item;
+          break;
+        }
+      }
+    }
+
+    selected ??= recommendations.first;
     final buffer = StringBuffer();
-    final skills = career.skills.join(', ');
-    buffer.writeln('Top match: ${career.title}');
-    buffer.writeln(career.description);
-    buffer.writeln('You\'ll need: $skills');
-    buffer.writeln('Education: ${career.educationRequired}');
-    buffer.writeln('Roadmap:');
+    buffer.writeln('Best match: ${selected.recommendation.careerOption.title}');
+    buffer.writeln('Confidence: ${selected.confidence.toStringAsFixed(1)}%');
+    buffer.writeln('Why it fits:');
+    for (final reason in selected.strengths.take(3)) {
+      buffer.writeln('• $reason');
+    }
+
+    if (selected.skillGaps.isNotEmpty) {
+      buffer.writeln(
+        'Skill gaps to close: ${selected.skillGaps.take(4).join(', ')}',
+      );
+    }
+
+    buffer.writeln('Next actions:');
+    for (final action in selected.nextActions.take(3)) {
+      buffer.writeln('• $action');
+    }
+
+    if (recommendations.length > 1) {
+      buffer.writeln('Other good options:');
+      for (final item in recommendations.skip(1).take(2)) {
+        buffer.writeln(
+          '• ${item.recommendation.careerOption.title} (${item.confidence.toStringAsFixed(0)}%)',
+        );
+      }
+    }
+
     buffer.writeln(
-      '• Month 0–1: Foundation — cover basics, glossary, and daily 45-min practice.',
-    );
-    buffer.writeln(
-      '• Month 1–2: Skills — follow one solid course; build 2 small portfolio pieces or mock case studies.',
-    );
-    buffer.writeln(
-      '• Month 2–3: Credential — attempt one certification/exam or license relevant to ${career.title}.',
-    );
-    buffer.writeln(
-      '• Ongoing: Applications — 5–10 targeted applications per week; practice interview/aptitude weekly.',
-    );
-    buffer.writeln(
-      'You got this! Want a tighter 30/60/90 or specific course links?',
+      'If you want, I can turn this into a 30/60/90 day roadmap next.',
     );
     return buffer.toString();
+  }
+
+  Future<String> _buildSkillGapResponse(String userMessage) async {
+    final recommendations =
+        await CareerRecommendationService.analyzeCareerRecommendations(
+          widget.userProfile,
+        );
+
+    if (recommendations.isEmpty) {
+      return 'I need a little more profile data before I can estimate gaps. Add skills, interests, and a job title and I\'ll map them for you.';
+    }
+
+    final target = _extractRole(userMessage);
+    CareerRecommendationInsight? selected;
+
+    if (target != null) {
+      final loweredTarget = target.toLowerCase();
+      for (final item in recommendations) {
+        final title = item.recommendation.careerOption.title.toLowerCase();
+        if (title.contains(loweredTarget) || loweredTarget.contains(title)) {
+          selected = item;
+          break;
+        }
+      }
+    }
+
+    selected ??= recommendations.first;
+    if (selected.skillGaps.isEmpty) {
+      return 'For ${selected.recommendation.careerOption.title}, I do not see any major skill gap from your current profile. The next move is to build proof: projects, certificates, or experience.\nNext step: ${selected.nextActions.first}';
+    }
+
+    final gapSummary = selected.skillGaps.take(5).join(', ');
+    final actionSummary = selected.nextActions.take(3).join('\n• ');
+    return 'For ${selected.recommendation.careerOption.title}, the biggest gaps are: $gapSummary.\n\nRecommended actions:\n• $actionSummary';
   }
 
   String _buildSchemeResponse() {
@@ -252,36 +360,85 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     if (eligibleSchemes.isEmpty) {
       return 'I couldn\'t find schemes based on your profile. Add your location, occupation, and income range to unlock matches.';
     }
-    final scheme = eligibleSchemes.first;
-    final eligibility = scheme.eligibility.entries
-        .map((e) => '${e.key}: ${e.value}')
-        .join(', ');
-    return 'Closest match: ${scheme.name}\nWhat it is: ${scheme.description}\nBenefits: ${scheme.benefits}\nEligibility hints: $eligibility\nAction: Tap “Apply Now” to open the official portal and submit.';
-  }
-
-  String _buildSkillGapResponse() {
-    final skills = widget.userProfile.skills;
-    if (skills.isEmpty) {
-      return 'I don\'t see skills yet—share 3 you have and 3 you want, and I\'ll map gaps + learning steps. We\'ll keep it light and doable. 💪';
+    final buffer = StringBuffer();
+    buffer.writeln(
+      'I found ${eligibleSchemes.length} scheme match(es). Top options:',
+    );
+    for (final scheme in eligibleSchemes.take(3)) {
+      final eligibility = scheme.eligibility.entries
+          .map((e) => '${e.key}: ${e.value}')
+          .join(', ');
+      buffer.writeln('• ${scheme.name}');
+      buffer.writeln('  ${scheme.description}');
+      buffer.writeln('  Benefits: ${scheme.benefits}');
+      buffer.writeln('  Eligibility: $eligibility');
     }
-    return 'You already have: ${skills.join(', ')}.\nPick a target role and I\'ll map gaps + 3 resources each. Example: "Gap for Railway JE" or "Gap for Registered Nurse".';
+    buffer.writeln(
+      'If you want, I can narrow this to only scholarships, jobs, or entrepreneurship schemes.',
+    );
+    return buffer.toString();
   }
 
   String _buildGoalResponse() {
     if (widget.userProfile.careerGoals.isEmpty) {
-      return 'No goals yet. Drop one goal + deadline + priority (e.g., "Bank PO by Dec 2026, high priority") and I\'ll turn it into milestones. I\'m with you. 🙌';
+      return 'No goals yet. Share one goal and a deadline, and I\'ll turn it into milestones and weekly actions.';
     }
-    final goals = widget.userProfile.careerGoals
-        .map((g) => '${g.goalTitle} (target ${g.targetYear})')
-        .join('; ');
-    return 'Your goals: $goals.\nWant me to break one into 30/60/90 milestones and weekly actions?';
+    final buffer = StringBuffer();
+    buffer.writeln('Your goals:');
+    for (final goal in widget.userProfile.careerGoals.take(5)) {
+      buffer.writeln('• ${goal.goalTitle} (target ${goal.targetYear})');
+      if (goal.description.isNotEmpty) {
+        buffer.writeln('  ${goal.description}');
+      }
+    }
+    buffer.writeln('I can convert one of these into a 30/60/90 plan next.');
+    return buffer.toString();
   }
 
   String _buildProfileSummary() {
-    return 'Here’s your snapshot:\nSkills: ${widget.userProfile.skills.join(', ').ifEmpty('not set')}\nInterests: ${widget.userProfile.interests.join(', ').ifEmpty('not set')}\nLocation: ${widget.userProfile.location ?? 'not set'}\nJob title: ${widget.userProfile.preferredJobTitle ?? 'not set'}\nTell me a role and I\'ll draft a friendly roadmap.';
+    final profileName = widget.userProfile.fullName ?? 'not set';
+    return 'Profile snapshot:\nName: $profileName\nSkills: ${widget.userProfile.skills.join(', ').ifEmpty('not set')}\nInterests: ${widget.userProfile.interests.join(', ').ifEmpty('not set')}\nLocation: ${widget.userProfile.location ?? 'not set'}\nPreferred job: ${widget.userProfile.preferredJobTitle ?? 'not set'}\nPreferred industries: ${widget.userProfile.preferredIndustries.join(', ').ifEmpty('not set')}\nTell me a role and I\'ll give you the best next move.';
+  }
+
+  Future<String> _buildDefaultResponse(String userMessage) async {
+    final recommendations =
+        await CareerRecommendationService.analyzeCareerRecommendations(
+          widget.userProfile,
+        );
+
+    final profileSkills = widget.userProfile.skills;
+    final tone = userMessage.contains('?')
+        ? 'Here is the clearest answer I can give right now.'
+        : 'I can help with that.';
+
+    if (recommendations.isEmpty) {
+      return '$tone I need a bit more profile data to give a strong answer. Add skills, interests, and a preferred job title, then ask me again.';
+    }
+
+    final top = recommendations.first;
+    final buffer = StringBuffer();
+    buffer.writeln(
+      '$tone Based on your profile, your strongest career match is ${top.recommendation.careerOption.title} (${top.confidence.toStringAsFixed(0)}%).',
+    );
+    if (profileSkills.isNotEmpty) {
+      buffer.writeln(
+        'Your current skills: ${profileSkills.take(5).join(', ')}',
+      );
+    }
+    if (top.skillGaps.isNotEmpty) {
+      buffer.writeln('Main gap to close: ${top.skillGaps.take(3).join(', ')}');
+    }
+    buffer.writeln('Best next move: ${top.nextActions.first}');
+    buffer.writeln(
+      'If you want, ask me for a roadmap, skill gap analysis, or the best schemes for this path.',
+    );
+    return buffer.toString();
   }
 
   Intent _detectIntent(String lowerMessage) {
+    if (_isCareerQuestion(lowerMessage)) {
+      return Intent.careerRoadmap;
+    }
     if (lowerMessage.contains('roadmap') ||
         lowerMessage.contains('plan') ||
         lowerMessage.contains('become')) {
@@ -297,7 +454,11 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
         lowerMessage.contains('benefit')) {
       return Intent.govScheme;
     }
-    if (lowerMessage.contains('goal')) return Intent.goalHelp;
+    if (lowerMessage.contains('goal') ||
+        lowerMessage.contains('milestone') ||
+        lowerMessage.contains('target')) {
+      return Intent.goalHelp;
+    }
     if (lowerMessage.contains('profile') || lowerMessage.contains('summary')) {
       return Intent.profileSummary;
     }
@@ -311,30 +472,48 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     return Intent.defaultIntent;
   }
 
+  bool _isCareerQuestion(String lowerMessage) {
+    return lowerMessage.contains('best career') ||
+        lowerMessage.contains('what career') ||
+        lowerMessage.contains('recommend') ||
+        lowerMessage.contains('suggest') ||
+        lowerMessage.contains('job for me');
+  }
+
   String? _extractRole(String message) {
     final lowered = message.toLowerCase();
-    // crude extraction: look for words after 'for' or 'as'
-    final forIndex = lowered.indexOf(' for ');
-    if (forIndex != -1 && forIndex + 5 < message.length) {
-      return lowered.substring(forIndex + 5).trim();
+    final patterns = [
+      ' for ',
+      ' as ',
+      ' in ',
+      ' into ',
+      ' to become ',
+      ' for the role of ',
+    ];
+    for (final pattern in patterns) {
+      final index = lowered.indexOf(pattern);
+      if (index != -1 && index + pattern.length < message.length) {
+        return lowered.substring(index + pattern.length).trim();
+      }
     }
-    final asIndex = lowered.indexOf(' as ');
-    if (asIndex != -1 && asIndex + 4 < message.length) {
-      return lowered.substring(asIndex + 4).trim();
-    }
-    return null;
+
+    final cleaned = lowered
+        .replaceAll('best career', '')
+        .replaceAll('recommend', '')
+        .replaceAll('suggest', '')
+        .replaceAll('job', '')
+        .trim();
+    return cleaned.isEmpty ? null : cleaned;
   }
 
   String _warmify(String text) {
-    // sprinkle a supportive emoji only if not already present to keep it subtle
-    final emoji = '🙂';
     if (text.contains('😊') ||
         text.contains('🙌') ||
         text.contains('💪') ||
         text.contains('🙂')) {
       return text;
     }
-    return '$emoji $text';
+    return '🙂 $text';
   }
 
   void _scrollToBottom() {
@@ -358,8 +537,13 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
 class ChatMessage {
   final String text;
   final bool isUser;
+  final bool isTyping;
 
-  ChatMessage({required this.text, required this.isUser});
+  ChatMessage({
+    required this.text,
+    required this.isUser,
+    this.isTyping = false,
+  });
 }
 
 enum Intent {

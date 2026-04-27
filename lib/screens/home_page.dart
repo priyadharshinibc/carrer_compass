@@ -1,4 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import '../models/user_profile.dart';
 import '../screens/admin/admin_screen.dart';
 import '../screens/ai_assistant_screen.dart';
@@ -27,6 +31,17 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   final SecureStorageService _storageService = SecureStorageService();
   final BackendUserService _backendUserService = BackendUserService();
+  final ImagePicker _imagePicker = ImagePicker();
+  UserProfile? _currentProfile;
+  bool _isUpdatingProfilePhoto = false;
+
+  UserProfile get _profile => _currentProfile ?? widget.userProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentProfile = widget.userProfile;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -271,44 +286,35 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildProfileHeader(widget.userProfile),
+          _buildProfileHeader(_profile),
           const SizedBox(height: 24),
           _buildProfileSection('Basic Information', [
-            _buildProfileTile(
-              'Full Name',
-              widget.userProfile.fullName ?? 'Not set',
-            ),
-            _buildProfileTile('Email', widget.userProfile.email ?? 'Not set'),
-            _buildProfileTile(
-              'Phone',
-              widget.userProfile.phoneNumber ?? 'Not set',
-            ),
-            _buildProfileTile(
-              'Location',
-              widget.userProfile.location ?? 'Not set',
-            ),
+            _buildProfileTile('Full Name', _profile.fullName ?? 'Not set'),
+            _buildProfileTile('Email', _profile.email ?? 'Not set'),
+            _buildProfileTile('Phone', _profile.phoneNumber ?? 'Not set'),
+            _buildProfileTile('Location', _profile.location ?? 'Not set'),
           ]),
           const SizedBox(height: 16),
           _buildProfileSection('Skills & Interests', [
-            if (widget.userProfile.skills.isNotEmpty)
-              _buildTagsList('Skills', widget.userProfile.skills),
-            if (widget.userProfile.interests.isNotEmpty)
-              _buildTagsList('Interests', widget.userProfile.interests),
-            if (widget.userProfile.hobbies.isNotEmpty)
-              _buildTagsList('Hobbies', widget.userProfile.hobbies),
+            if (_profile.skills.isNotEmpty)
+              _buildTagsList('Skills', _profile.skills),
+            if (_profile.interests.isNotEmpty)
+              _buildTagsList('Interests', _profile.interests),
+            if (_profile.hobbies.isNotEmpty)
+              _buildTagsList('Hobbies', _profile.hobbies),
           ]),
           const SizedBox(height: 16),
           _buildProfileSection('Career Information', [
             _buildProfileTile(
               'Preferred Job Title',
-              widget.userProfile.preferredJobTitle ?? 'Not set',
+              _profile.preferredJobTitle ?? 'Not set',
             ),
             _buildProfileTile(
               'Employment Type',
-              widget.userProfile.employmentType ?? 'Not set',
+              _profile.employmentType ?? 'Not set',
             ),
-            if (widget.userProfile.languages.isNotEmpty)
-              _buildTagsList('Languages', widget.userProfile.languages),
+            if (_profile.languages.isNotEmpty)
+              _buildTagsList('Languages', _profile.languages),
           ]),
           const SizedBox(height: 24),
           _buildEditProfileButton(),
@@ -372,7 +378,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildAIAssistantScreen() {
-    return AIAssistantScreen(userProfile: widget.userProfile);
+    return AIAssistantScreen(userProfile: _profile);
   }
 
   Widget _buildWelcomeCard() {
@@ -702,24 +708,7 @@ class _HomePageState extends State<HomePage> {
       ),
       child: Row(
         children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: AppColors.goldAccent,
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: Center(
-              child: Text(
-                (userProfile.fullName ?? 'U')[0].toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-          ),
+          _buildProfileAvatar(userProfile),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -739,6 +728,30 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.white.withOpacity(0.7),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: _isUpdatingProfilePhoto
+                      ? null
+                      : _pickAndSaveProfilePhoto,
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.goldAccent,
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: _isUpdatingProfilePhoto
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.photo_library_outlined, size: 16),
+                  label: Text(
+                    _isUpdatingProfilePhoto
+                        ? 'Updating...'
+                        : 'Change profile photo',
                   ),
                 ),
               ],
@@ -853,14 +866,144 @@ class _HomePageState extends State<HomePage> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (_) =>
-                  BasicProfileScreen(existingProfile: widget.userProfile),
+              builder: (_) => BasicProfileScreen(existingProfile: _profile),
             ),
           );
         },
         child: const Text('Edit Profile'),
       ),
     );
+  }
+
+  Widget _buildProfileAvatar(UserProfile userProfile) {
+    final profilePhotoPath = userProfile.profilePhotoUrl;
+    final hasValidLocalFile =
+        profilePhotoPath != null && File(profilePhotoPath).existsSync();
+
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: Container(
+            width: 60,
+            height: 60,
+            color: AppColors.goldAccent,
+            child: hasValidLocalFile
+                ? Image.file(
+                    File(profilePhotoPath),
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) =>
+                        _buildInitialAvatar(userProfile),
+                  )
+                : _buildInitialAvatar(userProfile),
+          ),
+        ),
+        Positioned(
+          right: -2,
+          bottom: -2,
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: AppColors.primaryBlue,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.white24),
+            ),
+            child: const Icon(Icons.edit, size: 12, color: Colors.white),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInitialAvatar(UserProfile userProfile) {
+    final firstChar = (userProfile.fullName ?? 'U').trim();
+    return Center(
+      child: Text(
+        (firstChar.isNotEmpty ? firstChar[0] : 'U').toUpperCase(),
+        style: const TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickAndSaveProfilePhoto() async {
+    try {
+      setState(() => _isUpdatingProfilePhoto = true);
+
+      final selectedImage = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        imageQuality: 85,
+      );
+
+      if (selectedImage == null) {
+        if (mounted) {
+          setState(() => _isUpdatingProfilePhoto = false);
+        }
+        return;
+      }
+
+      final appDirectory = await getApplicationDocumentsDirectory();
+      final profilePhotosDirectory = Directory(
+        '${appDirectory.path}${Platform.pathSeparator}profile_photos',
+      );
+      if (!profilePhotosDirectory.existsSync()) {
+        profilePhotosDirectory.createSync(recursive: true);
+      }
+
+      final sourcePath = selectedImage.path;
+      final dotIndex = sourcePath.lastIndexOf('.');
+      final extension = dotIndex > -1 ? sourcePath.substring(dotIndex) : '.jpg';
+      final savedImagePath =
+          '${profilePhotosDirectory.path}${Platform.pathSeparator}profile_${DateTime.now().millisecondsSinceEpoch}$extension';
+
+      final copiedImage = await File(sourcePath).copy(savedImagePath);
+
+      final updatedProfile = _profile.copyWith(
+        profilePhotoUrl: copiedImage.path,
+        updatedAt: DateTime.now(),
+      );
+
+      final localSaved = await _storageService.saveUserProfile(updatedProfile);
+      if (!localSaved) {
+        throw Exception('Could not save photo locally');
+      }
+
+      try {
+        final syncedProfile = await _backendUserService.upsertUserProfile(
+          updatedProfile,
+        );
+        await _storageService.saveUserProfile(syncedProfile);
+        if (mounted) {
+          setState(() {
+            _currentProfile = syncedProfile;
+          });
+        }
+      } catch (_) {
+        if (mounted) {
+          setState(() {
+            _currentProfile = updatedProfile;
+          });
+        }
+      }
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile photo updated successfully')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update profile photo: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isUpdatingProfilePhoto = false);
+      }
+    }
   }
 
   void _showProfileSettings(BuildContext context) {
@@ -896,7 +1039,7 @@ class _HomePageState extends State<HomePage> {
                   context,
                   MaterialPageRoute(
                     builder: (_) =>
-                        BasicProfileScreen(existingProfile: widget.userProfile),
+                        BasicProfileScreen(existingProfile: _profile),
                   ),
                 );
               },
@@ -916,16 +1059,6 @@ class _HomePageState extends State<HomePage> {
                   context,
                   MaterialPageRoute(builder: (_) => const AdminScreen()),
                 );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.lock, color: Colors.white),
-              title: const Text(
-                'Privacy Settings',
-                style: TextStyle(color: Colors.white),
-              ),
-              onTap: () {
-                Navigator.pop(context);
               },
             ),
             ListTile(
@@ -959,12 +1092,9 @@ class _HomePageState extends State<HomePage> {
             onPressed: () async {
               Navigator.pop(context);
 
-              if (widget.userProfile.userId != null &&
-                  widget.userProfile.userId!.isNotEmpty) {
+              if (_profile.userId != null && _profile.userId!.isNotEmpty) {
                 try {
-                  await _backendUserService.deleteUser(
-                    widget.userProfile.userId!,
-                  );
+                  await _backendUserService.deleteUser(_profile.userId!);
                 } catch (e) {
                   final errorMessage = e.toString();
                   final alreadyDeleted =

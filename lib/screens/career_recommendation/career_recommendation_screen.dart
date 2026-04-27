@@ -91,8 +91,19 @@ class CareerRecommendationScreen extends StatelessWidget {
                       itemBuilder: (context, index) {
                         final rec = recommendations[index];
                         return Card(
-                          color: Colors.white.withOpacity(0.08),
+                          color: const Color.fromARGB(
+                            255,
+                            31,
+                            72,
+                            95,
+                          ).withOpacity(0.92),
                           margin: const EdgeInsets.only(bottom: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            side: BorderSide(
+                              color: AppColors.tealBlue.withOpacity(0.45),
+                            ),
+                          ),
                           child: ListTile(
                             title: Text(
                               rec.recommendation.careerOption.title,
@@ -101,7 +112,7 @@ class CareerRecommendationScreen extends StatelessWidget {
                             subtitle: Text(
                               'AI confidence: ${rec.confidence.toStringAsFixed(1)}%\n${rec.strengths.first}',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
+                                color: Colors.white.withOpacity(0.78),
                               ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
@@ -109,7 +120,7 @@ class CareerRecommendationScreen extends StatelessWidget {
                             trailing: Text(
                               '${rec.confidence.toStringAsFixed(0)}%',
                               style: const TextStyle(
-                                color: AppColors.goldAccent,
+                                color: Colors.white,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -161,155 +172,157 @@ class CareerInsightDetailScreen extends StatelessWidget {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                career.title,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                career.description,
-                style: TextStyle(color: Colors.white.withOpacity(0.7)),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'AI Confidence: ${insight.confidence.toStringAsFixed(1)}%',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.goldAccent,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Why This Matches You',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
-              ...insight.strengths.map(
-                (reason) => Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Text(
-                    '• $reason',
-                    style: TextStyle(color: Colors.white.withOpacity(0.75)),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  career.title,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Skill Gaps',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
-              if (insight.skillGaps.isEmpty)
+                const SizedBox(height: 12),
                 Text(
-                  'No critical gaps detected.',
+                  career.description,
                   style: TextStyle(color: Colors.white.withOpacity(0.7)),
-                )
-              else
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'AI Confidence: ${insight.confidence.toStringAsFixed(1)}%',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Why This Matches You',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...insight.strengths.map(
+                  (reason) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text(
+                      '• $reason',
+                      style: TextStyle(color: Colors.white.withOpacity(0.75)),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Skill Gaps',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (insight.skillGaps.isEmpty)
+                  Text(
+                    'No critical gaps detected.',
+                    style: TextStyle(color: Colors.white.withOpacity(0.7)),
+                  )
+                else
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: insight.skillGaps.map((skill) {
+                      return Chip(
+                        label: Text(skill),
+                        backgroundColor: AppColors.tealBlue.withOpacity(0.38),
+                        labelStyle: const TextStyle(color: Colors.white),
+                      );
+                    }).toList(),
+                  ),
+                const SizedBox(height: 20),
+                Text(
+                  'Next Actions',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...insight.nextActions.map(
+                  (step) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Text(
+                      '• $step',
+                      style: TextStyle(color: Colors.white.withOpacity(0.75)),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Required Skills',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: insight.skillGaps.map((skill) {
+                  children: career.skills.map((skill) {
                     return Chip(
                       label: Text(skill),
-                      backgroundColor: Colors.orange.withOpacity(0.2),
+                      backgroundColor: AppColors.primaryBlue.withOpacity(0.38),
                       labelStyle: const TextStyle(color: Colors.white),
                     );
                   }).toList(),
                 ),
-              const SizedBox(height: 20),
-              Text(
-                'Next Actions',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
-              ...insight.nextActions.map(
-                (step) => Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Text(
-                    '• $step',
-                    style: TextStyle(color: Colors.white.withOpacity(0.75)),
+                const SizedBox(height: 20),
+                Text(
+                  'Industries',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Required Skills',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: career.industries.map((industry) {
+                    return Chip(
+                      label: Text(industry),
+                      backgroundColor: AppColors.primaryBlue.withOpacity(0.38),
+                      labelStyle: const TextStyle(color: Colors.white),
+                    );
+                  }).toList(),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: career.skills.map((skill) {
-                  return Chip(
-                    label: Text(skill),
-                    backgroundColor: Colors.white.withOpacity(0.1),
-                    labelStyle: const TextStyle(color: Colors.white),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Industries',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                const SizedBox(height: 20),
+                Text(
+                  'Typical Education',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: career.industries.map((industry) {
-                  return Chip(
-                    label: Text(industry),
-                    backgroundColor: Colors.white.withOpacity(0.1),
-                    labelStyle: const TextStyle(color: Colors.white),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Typical Education',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                const SizedBox(height: 8),
+                Text(
+                  career.educationRequired,
+                  style: TextStyle(color: Colors.white.withOpacity(0.7)),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                career.educationRequired,
-                style: TextStyle(color: Colors.white.withOpacity(0.7)),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
