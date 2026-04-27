@@ -147,8 +147,8 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     });
 
     // Simulate typing delay
-    Future.delayed(const Duration(milliseconds: 600), () {
-      final response = _generateResponse(text);
+    Future.delayed(const Duration(milliseconds: 600), () async {
+      final response = await _generateResponse(text);
       setState(() {
         _messages.add(ChatMessage(text: response, isUser: false));
       });
@@ -158,7 +158,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     _scrollToBottom();
   }
 
-  String _generateResponse(String userMessage) {
+  Future<String> _generateResponse(String userMessage) async {
     final lowerMessage = userMessage.toLowerCase();
     final intent = _detectIntent(lowerMessage);
 
@@ -166,7 +166,9 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
       case Intent.careerRoadmap:
         final target = _extractRole(userMessage);
         final recommendations =
-            CareerRecommendationService.recommendCareers(widget.userProfile);
+            await CareerRecommendationService.recommendCareers(
+              widget.userProfile,
+            );
         if (target != null) {
           final match = recommendations
               .map((r) => r.careerOption)
@@ -177,10 +179,13 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
           return _warmify(_buildCareerRoadmap(match));
         }
         if (recommendations.isNotEmpty) {
-          return _warmify(_buildCareerRoadmap(recommendations.first.careerOption));
+          return _warmify(
+            _buildCareerRoadmap(recommendations.first.careerOption),
+          );
         }
         return _warmify(
-            'I couldn\'t find a good match yet. Add some skills/interests to your profile and try again— we\'ll nail this together!');
+          'I couldn\'t find a good match yet. Add some skills/interests to your profile and try again— we\'ll nail this together!',
+        );
 
       case Intent.skillsGap:
         return _warmify(_buildSkillGapResponse());
@@ -196,18 +201,21 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
 
       case Intent.greeting:
         return _warmify(
-            'Hi! I\'m your career buddy—ask me for any roadmap and I\'ll keep it short, clear, and doable.');
+          'Hi! I\'m your career buddy—ask me for any roadmap and I\'ll keep it short, clear, and doable.',
+        );
 
       case Intent.thanks:
         return _warmify('Anytime! Want another roadmap or a tiny next step?');
 
       case Intent.help:
         return _warmify(
-            'I can be your ChatGPT-style friend for careers: roadmaps, skill gaps, government schemes, and next actions. Try: "Roadmap for Bank PO" or "Schemes for women entrepreneurs".');
+          'I can be your ChatGPT-style friend for careers: roadmaps, skill gaps, government schemes, and next actions. Try: "Roadmap for Bank PO" or "Schemes for women entrepreneurs".',
+        );
 
       default:
         return _warmify(
-            'Tell me a role or goal (e.g., "become a data analyst" or "clear state PSC"). I\'ll share a supportive, realistic plan.');
+          'Tell me a role or goal (e.g., "become a data analyst" or "clear state PSC"). I\'ll share a supportive, realistic plan.',
+        );
     }
   }
 
@@ -215,15 +223,25 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     final buffer = StringBuffer();
     final skills = career.skills.join(', ');
     buffer.writeln('Top match: ${career.title}');
-    buffer.writeln('${career.description}');
+    buffer.writeln(career.description);
     buffer.writeln('You\'ll need: $skills');
     buffer.writeln('Education: ${career.educationRequired}');
     buffer.writeln('Roadmap:');
-    buffer.writeln('• Month 0–1: Foundation — cover basics, glossary, and daily 45-min practice.');
-    buffer.writeln('• Month 1–2: Skills — follow one solid course; build 2 small portfolio pieces or mock case studies.');
-    buffer.writeln('• Month 2–3: Credential — attempt one certification/exam or license relevant to ${career.title}.');
-    buffer.writeln('• Ongoing: Applications — 5–10 targeted applications per week; practice interview/aptitude weekly.');
-    buffer.writeln('You got this! Want a tighter 30/60/90 or specific course links?');
+    buffer.writeln(
+      '• Month 0–1: Foundation — cover basics, glossary, and daily 45-min practice.',
+    );
+    buffer.writeln(
+      '• Month 1–2: Skills — follow one solid course; build 2 small portfolio pieces or mock case studies.',
+    );
+    buffer.writeln(
+      '• Month 2–3: Credential — attempt one certification/exam or license relevant to ${career.title}.',
+    );
+    buffer.writeln(
+      '• Ongoing: Applications — 5–10 targeted applications per week; practice interview/aptitude weekly.',
+    );
+    buffer.writeln(
+      'You got this! Want a tighter 30/60/90 or specific course links?',
+    );
     return buffer.toString();
   }
 
@@ -266,20 +284,28 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
   Intent _detectIntent(String lowerMessage) {
     if (lowerMessage.contains('roadmap') ||
         lowerMessage.contains('plan') ||
-        lowerMessage.contains('become')) return Intent.careerRoadmap;
+        lowerMessage.contains('become')) {
+      return Intent.careerRoadmap;
+    }
     if (lowerMessage.contains('gap') ||
         lowerMessage.contains('skill gap') ||
-        lowerMessage.contains('learn')) return Intent.skillsGap;
+        lowerMessage.contains('learn')) {
+      return Intent.skillsGap;
+    }
     if (lowerMessage.contains('scheme') ||
         lowerMessage.contains('government') ||
-        lowerMessage.contains('benefit')) return Intent.govScheme;
+        lowerMessage.contains('benefit')) {
+      return Intent.govScheme;
+    }
     if (lowerMessage.contains('goal')) return Intent.goalHelp;
     if (lowerMessage.contains('profile') || lowerMessage.contains('summary')) {
       return Intent.profileSummary;
     }
     if (lowerMessage.contains('hello') ||
         lowerMessage.contains('hi') ||
-        lowerMessage.contains('hey')) return Intent.greeting;
+        lowerMessage.contains('hey')) {
+      return Intent.greeting;
+    }
     if (lowerMessage.contains('thank')) return Intent.thanks;
     if (lowerMessage.contains('help')) return Intent.help;
     return Intent.defaultIntent;

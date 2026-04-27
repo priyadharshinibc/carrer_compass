@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../services/secure_storage_service.dart';
 import '../themes/app_theme.dart';
+import 'home_page.dart';
 import 'login.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -12,6 +14,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  final SecureStorageService _storageService = SecureStorageService();
 
   @override
   void initState() {
@@ -22,12 +25,25 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(seconds: 2),
     )..forward();
 
-    Future.delayed(const Duration(seconds: 5), () {
+    Future.delayed(const Duration(seconds: 2), _navigateNext);
+  }
+
+  Future<void> _navigateNext() async {
+    final profile = await _storageService.getUserProfile();
+    if (!mounted) return;
+
+    if (profile != null) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        MaterialPageRoute(builder: (_) => HomePage(userProfile: profile)),
       );
-    });
+      return;
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
   }
 
   @override

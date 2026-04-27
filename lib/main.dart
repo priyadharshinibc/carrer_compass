@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import 'themes/app_theme.dart';
-import 'screens/Splash_screen.dart';
 
-void main() {
+import 'screens/Splash_screen.dart';
+import 'services/firebase_initializer.dart';
+import 'themes/app_theme.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeFirebase();
   runApp(const CareerCompassApp());
 }
 

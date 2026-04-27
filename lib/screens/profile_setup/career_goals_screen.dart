@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/user_profile.dart';
+import '../../services/backend_user_service.dart';
 import '../../services/secure_storage_service.dart';
 import '../../themes/app_theme.dart';
 import '../home_page.dart';
@@ -21,6 +22,7 @@ class _CareerGoalsScreenState extends State<CareerGoalsScreen> {
   String? _selectedEmploymentType;
   List<String> selectedIndustries = [];
   List<String> selectedLanguages = [];
+  bool _isSaving = false;
 
   final List<String> employmentTypes = [
     'Full-time',
@@ -144,26 +146,48 @@ class _CareerGoalsScreenState extends State<CareerGoalsScreen> {
       createdAt: widget.userProfile.createdAt ?? DateTime.now(),
     );
 
-    // Save to secure storage
+    setState(() => _isSaving = true);
+
+    // Save to MySQL backend then cache locally
     final storageService = SecureStorageService();
-    final saved = await storageService.saveUserProfile(finalProfile);
+    final backendUserService = BackendUserService();
 
-    if (!mounted) return;
-
-    if (saved) {
-      // Navigate to home page
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => HomePage(userProfile: finalProfile)),
-        (route) => false,
+    try {
+      final syncedProfile = await backendUserService.upsertUserProfile(
+        finalProfile,
       );
-    } else {
+      final saved = await storageService.saveUserProfile(syncedProfile);
+
+      if (!mounted) return;
+
+      if (saved) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (_) => HomePage(userProfile: syncedProfile),
+          ),
+          (route) => false,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error saving profile. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Error saving profile. Please try again.'),
+        SnackBar(
+          content: Text('Could not save to server: $e'),
           backgroundColor: Colors.red,
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 
@@ -590,8 +614,14 @@ class _CareerGoalsScreenState extends State<CareerGoalsScreen> {
         const SizedBox(width: 16),
         Expanded(
           child: ElevatedButton(
-            onPressed: _completeProfileSetup,
-            child: const Text('Complete Setup'),
+            onPressed: _isSaving ? null : _completeProfileSetup,
+            child: _isSaving
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Complete Setup'),
           ),
         ),
       ],

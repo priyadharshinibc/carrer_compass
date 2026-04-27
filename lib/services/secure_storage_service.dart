@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/user_profile.dart';
 
 /// Secure Storage Service
@@ -7,10 +9,12 @@ import '../models/user_profile.dart';
 /// Can be extended to use flutter_secure_storage or similar packages
 class SecureStorageService {
   static const String _userProfileKey = 'user_profile_secure';
+  static const String _userPreferencesKey = 'user_preferences';
+  static const String _educationHistoryKey = 'education_history';
+  static const String _careerGoalsKey = 'career_goals';
   static const String _userDataEncryptionKey = 'user_data_encryption_key';
 
-  // In-memory storage (can be replaced with actual secure storage)
-  static final Map<String, String> _secureStorage = {};
+  Future<SharedPreferences> _prefs() => SharedPreferences.getInstance();
 
   /// Save user profile securely
   Future<bool> saveUserProfile(UserProfile profile) async {
@@ -18,7 +22,8 @@ class SecureStorageService {
       final jsonData = jsonEncode(profile.toJson());
       // Encrypt data (basic implementation - can be enhanced)
       final encryptedData = _encryptData(jsonData);
-      _secureStorage[_userProfileKey] = encryptedData;
+      final prefs = await _prefs();
+      await prefs.setString(_userProfileKey, encryptedData);
       return true;
     } catch (e) {
       debugPrint('Error saving user profile: $e');
@@ -29,7 +34,8 @@ class SecureStorageService {
   /// Retrieve user profile securely
   Future<UserProfile?> getUserProfile() async {
     try {
-      final encryptedData = _secureStorage[_userProfileKey];
+      final prefs = await _prefs();
+      final encryptedData = prefs.getString(_userProfileKey);
       if (encryptedData == null) return null;
 
       // Decrypt data
@@ -58,7 +64,8 @@ class SecureStorageService {
       };
       final jsonData = jsonEncode(preferences);
       final encryptedData = _encryptData(jsonData);
-      _secureStorage['user_preferences'] = encryptedData;
+      final prefs = await _prefs();
+      await prefs.setString(_userPreferencesKey, encryptedData);
       return true;
     } catch (e) {
       debugPrint('Error saving preferences: $e');
@@ -72,7 +79,8 @@ class SecureStorageService {
       final data = educationHistory.map((e) => e.toJson()).toList();
       final jsonData = jsonEncode(data);
       final encryptedData = _encryptData(jsonData);
-      _secureStorage['education_history'] = encryptedData;
+      final prefs = await _prefs();
+      await prefs.setString(_educationHistoryKey, encryptedData);
       return true;
     } catch (e) {
       debugPrint('Error saving education history: $e');
@@ -86,7 +94,8 @@ class SecureStorageService {
       final data = careerGoals.map((g) => g.toJson()).toList();
       final jsonData = jsonEncode(data);
       final encryptedData = _encryptData(jsonData);
-      _secureStorage['career_goals'] = encryptedData;
+      final prefs = await _prefs();
+      await prefs.setString(_careerGoalsKey, encryptedData);
       return true;
     } catch (e) {
       debugPrint('Error saving career goals: $e');
@@ -97,7 +106,11 @@ class SecureStorageService {
   /// Clear user data (for logout)
   Future<bool> clearUserData() async {
     try {
-      _secureStorage.clear();
+      final prefs = await _prefs();
+      await prefs.remove(_userProfileKey);
+      await prefs.remove(_userPreferencesKey);
+      await prefs.remove(_educationHistoryKey);
+      await prefs.remove(_careerGoalsKey);
       return true;
     } catch (e) {
       debugPrint('Error clearing user data: $e');
@@ -107,7 +120,8 @@ class SecureStorageService {
 
   /// Check if user profile exists
   Future<bool> hasUserProfile() async {
-    return _secureStorage.containsKey(_userProfileKey);
+    final prefs = await _prefs();
+    return prefs.containsKey(_userProfileKey);
   }
 
   /// Basic encryption (XOR with key) - For enhanced security, use proper encryption

@@ -4,8 +4,11 @@ import '../screens/admin/admin_screen.dart';
 import '../screens/ai_assistant_screen.dart';
 import '../screens/career_recommendation/career_recommendation_screen.dart';
 import '../screens/government_schemes/government_schemes_screen.dart';
-import '../screens/optimization/quantum_optimization_screen.dart';
+import '../screens/optimization/career_action_plan_screen.dart';
 import '../screens/profile_setup/basic_profile_screen.dart';
+import '../services/backend_user_service.dart';
+import '../services/secure_storage_service.dart';
+import 'login.dart';
 import 'learn/learn_detail_screen.dart';
 import '../themes/app_theme.dart';
 
@@ -22,6 +25,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  final SecureStorageService _storageService = SecureStorageService();
+  final BackendUserService _backendUserService = BackendUserService();
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +152,8 @@ class _HomePageState extends State<HomePage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => const LearnDetailScreen(topic: 'Trending Courses'),
+              builder: (_) =>
+                  const LearnDetailScreen(topic: 'Trending Courses'),
             ),
           );
         } else if (title == 'Architecture') {
@@ -168,7 +174,8 @@ class _HomePageState extends State<HomePage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => const LearnDetailScreen(topic: 'Maths and Science'),
+              builder: (_) =>
+                  const LearnDetailScreen(topic: 'Maths and Science'),
             ),
           );
         } else if (title == 'Law') {
@@ -182,9 +189,8 @@ class _HomePageState extends State<HomePage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => const LearnDetailScreen(
-                topic: 'Government Exam Preparation',
-              ),
+              builder: (_) =>
+                  const LearnDetailScreen(topic: 'Government Exam Preparation'),
             ),
           );
         } else {
@@ -499,14 +505,14 @@ class _HomePageState extends State<HomePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => QuantumOptimizationScreen(
+                        builder: (_) => CareerActionPlanScreen(
                           userProfile: widget.userProfile,
                         ),
                       ),
                     );
                   },
-            icon: const Icon(Icons.science),
-            label: const Text('Optimize Career Choices'),
+            icon: const Icon(Icons.track_changes),
+            label: const Text('Build Career Action Plan'),
           ),
         ),
         const SizedBox(height: 12),
@@ -941,16 +947,52 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
+        content: const Text(
+          'Are you sure you want to logout? Your saved profile data on this device will be cleared.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              Navigator.popUntil(context, (route) => route.isFirst);
+
+              if (widget.userProfile.userId != null &&
+                  widget.userProfile.userId!.isNotEmpty) {
+                try {
+                  await _backendUserService.deleteUser(
+                    widget.userProfile.userId!,
+                  );
+                } catch (e) {
+                  final errorMessage = e.toString();
+                  final alreadyDeleted =
+                      errorMessage.contains('status: 404') ||
+                      errorMessage.toLowerCase().contains('user not found');
+
+                  if (alreadyDeleted) {
+                    // User is already absent on server; continue local logout.
+                  } else {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to delete user data: $e')),
+                    );
+                    return;
+                  }
+
+                  if (!mounted) return;
+                }
+              }
+
+              await _storageService.clearUserData();
+              if (!mounted) return;
+
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
             },
             child: const Text('Logout', style: TextStyle(color: Colors.red)),
           ),
